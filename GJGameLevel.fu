@@ -1,0 +1,573 @@
+
+
+
+enum DifficultyFaces
+{
+    na,
+    auto,
+    easy,
+    normal,
+    hard,
+    harder,
+    insane,
+    demon
+}
+
+enum DemonFaces
+{
+    na,
+    easy,
+    medium,
+    hard,
+    insane,
+    extreme
+}
+
+enum LevelLength
+{
+    na,
+    Tiny,
+    Short,
+    Medium,
+    Long,
+    XL
+}
+
+enum LevelType
+{
+    na,
+    Normal,
+    Gauntlet,
+    Weekly,
+    Daily,
+    Event
+}
+public class GJGameLevel
+{
+
+    public const string prop_settingsString = "48";
+    public const string prop_editorTime2 = "47";
+    public const string prop_editorTime = "46";
+    public const string prop_objectCount = "45";
+    public const string prop_isGauntlet = "44";
+    public const string prop_demonDifficulty = "43";
+    public const string prop_epic = "42";
+    public const string prop_dailyNumber = "41";
+    public const string prop_lowDetailMode = "40";
+    public const string prop_starsRequested = "39";
+    public const string prop_verifiedCoins = "38";
+    public const string prop_coins = "37";
+    public const string prop_extraString = "36";
+    public const string prop_customSongId = "35";
+    public const string prop_twoPlayer = "31";
+    public const string prop_copiedId = "30";
+    public const string prop_updateDate = "29";
+    public const string prop_uploadDate = "28";
+    public const string prop_password = "27";
+    public const string prop_recordString = "26";
+    public const string prop_auto = "25";
+    public const string prop_featureScore = "19";
+    public const string prop_stars = "18";
+    public const string prop_is_demon = "17";
+    public const string prop_dislikes = "16";
+    public const string prop_length = "15";
+    public const string prop_likes = "14";
+    public const string prop_gameVersion = "13";
+    public const string prop_officialSong = "12";
+    public const string prop_setCompletes = "11";
+    public const string prop_downloads = "10";
+    public const string prop_difficultyNumerator = "9";
+    public const string prop_difficultyDenominator = "8";
+    public const string prop_playerId = "6";
+    public const string prop_version = "5";
+    public const string prop_levelString = "4";
+    public const string prop_description = "3";
+    public const string prop_levelname = "2";
+    public const string prop_levelId = "1";
+
+
+    public static int tryParse(string str, int defaultVal = 0)
+    {
+        int result = 0;
+        int sign = 1;
+        int i = 0;
+        int len = str.Length;
+
+        while (len > i && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n'))
+        {
+            i++;
+        }
+
+        if (len > i && str[i] == '-')
+        {
+            sign = -1;
+            i++;
+        }
+
+        while (len > i && str[i] == '0')
+        {
+            i++;
+        }
+        while (len > i && str[i] >= '0' && str[i] <= '9')
+        {
+            result = result * 10 + (str[i] - '0');
+            i++;
+        }
+
+        result = result * sign;
+        return result == 0 ? defaultVal : result;
+    }
+
+    public static int FindDelimiterIndex(string str, string delimiter, int startPos)
+    {
+        int len = str.Length;
+        int delimiterLen = delimiter.Length;
+
+        for (int i = startPos; i < len - delimiterLen + 1; i++)
+        {
+            bool found = true;
+            for (int j = 0; j < delimiterLen; j++)
+            {
+                if (str[i + j] != delimiter[j])
+                {
+                    found = false;
+                    break;
+                }
+            }
+            if (found)
+                return i;
+        }
+        return -1;
+    }
+
+    public static List<string>() Split(string str, string delimiter)
+    {
+        List<string>() ret;
+
+        int pos = 0;
+        int len = str.Length;
+        int delimiterLen = delimiter.Length;
+
+        while (pos < len)
+        {
+            int end = FindDelimiterIndex(str, delimiter, pos); // Find the next occurrence of the delimiter starting from 'pos'
+            if (end == -1)
+            {
+                ret.Add(str.Substring(pos)); // If no delimiter is found, add the substring from 'pos' to the end of the string
+                break;
+            }
+            ret.Add(str.Substring(pos, end - pos)); // Add the substring from 'pos' to 'end' (excluding 'end')
+            pos = end + delimiterLen; // Move the position after the delimiter
+        }
+
+        return ret;
+    }
+
+    //https://wyliemaster.github.io/gddocs/#/endpoints/levels/getGJLevels21?id=getgjlevels21
+
+    public void addFromObjectString!(string response)
+    {
+        List<string>() level_fields = Split(response, ":");
+
+        //lets make sure an Id exists before creating a GJGameLevel
+        for(int i = 0; i < level_fields.Count; i += 2)
+        {
+            string val = level_fields[i + 1];
+            if(val.Length == 0) continue;
+            //Console.WriteLine($"{level_fields[i]}: {level_fields[i + 1]}");
+            switch(level_fields[i])
+            {
+                case prop_levelId: LevelId = tryParse(val, 0); break;
+                case prop_levelname: LevelName = val; break;
+                case prop_description: LevelDesc = val; break;
+                case prop_levelString: LevelString = val; break;
+                case prop_version: LevelVersion = tryParse(val); break;
+                case prop_playerId: PlayerId = tryParse(val); break;
+                //case prop_difficultyDenominator: m_difficultyDenominator = tryParse(val); break;
+                case prop_difficultyNumerator:
+                {
+                    int temp = tryParse(val, -1);
+                    if(temp == -1) break;
+                    switch(temp)
+                    {
+                        case 0: LevelDifficulty = DifficultyFaces.na; break;
+                        case 10: LevelDifficulty = DifficultyFaces.easy; break;
+                        case 20: LevelDifficulty = DifficultyFaces.normal; break;
+                        case 30: LevelDifficulty = DifficultyFaces.hard; break;
+                        case 40: LevelDifficulty = DifficultyFaces.harder; break;
+                        case 50: LevelDifficulty = DifficultyFaces.insane; break;
+                        default: LevelDifficulty = DifficultyFaces.na; break;
+                    }
+                    break;
+                }
+                case prop_downloads: Downloads = tryParse(val); break;
+                case prop_officialSong: OfficialSongId = tryParse(val); break;
+                case prop_gameVersion: GameVersion = tryParse(val); break;
+                case prop_likes: Likes = tryParse(val); break;
+
+                case prop_length:
+                {
+                    int temp = tryParse(val, -1);
+                    if(temp == -1) break;
+                    switch(temp)
+                    {
+                        case 0: LevelDuration = LevelLength.Tiny; break;
+                        case 1: LevelDuration = LevelLength.Short; break;
+                        case 2: LevelDuration = LevelLength.Medium; break;
+                        case 3: LevelDuration = LevelLength.Long; break;
+                        case 4: LevelDuration = LevelLength.XL; break;
+                        default: LevelDuration = LevelLength.na; break;
+                    }
+                    break;
+                }
+                case prop_dislikes: Dislikes = tryParse(val); break;
+                case prop_is_demon: IsDemon = tryParse(val) == 1; break;
+                case prop_stars: Stars = tryParse(val); break;
+                case prop_featureScore: FeatureScore = tryParse(val); break;
+                case prop_auto: IsAuto = tryParse(val) == 1; break;
+                //TODO: password
+                case prop_uploadDate: UploadDate = val; break;
+                case prop_updateDate: UpdateDate = val; break;
+                case prop_copiedId: CopiedId = tryParse(val); break;
+                case prop_customSongId: SongId = tryParse(val); break;
+                case prop_coins: Coins = tryParse(val); break;
+                case prop_verifiedCoins: m_verifiedCoins = tryParse(val) == 1; break;
+                case prop_dailyNumber: DailyWeeklyNumber = tryParse(val); break;
+                case prop_epic: Epic = tryParse(val); break;
+                case prop_demonDifficulty:
+                {
+                    int temp = tryParse(val, -1);
+                    if(temp == -1) break;
+                    switch(temp)
+                    {
+                        case 0: DemonDifficulty = DemonFaces.hard; break;
+                        case 3: DemonDifficulty = DemonFaces.easy; break;
+                        case 4: DemonDifficulty = DemonFaces.medium; break;
+                        case 5: DemonDifficulty = DemonFaces.insane; break;
+                        case 6: DemonDifficulty = DemonFaces.extreme; break;
+                        default: DemonDifficulty = DemonFaces.na; break;
+                    }
+                    break;
+                }
+                case prop_isGauntlet: IsGauntletLevel = tryParse(val) == 1; break;
+                case prop_objectCount: ObjectCount = tryParse(val); break;
+                case prop_editorTime: EditorTime = tryParse(val); break;
+                case prop_editorTime2: EditorTimeCopies = tryParse(val); break;
+            }
+
+            //weird adjusting needed here
+            if(!IsDemon)
+            {
+                DemonDifficulty = DemonFaces.na;
+            }
+            else
+            {
+                LevelDifficulty = DifficultyFaces.demon;
+            }
+        }
+    }
+
+    public static List<GJGameLevel()>() createFromGjlevels21Response(string response)
+    {
+        List<GJGameLevel()>() ret;
+
+        List<string>() resp_parts = Split(response, "#");
+        if(resp_parts.Count == 1) return ret;
+
+        List<string>() level_objects_strs = Split(resp_parts[0], "|");
+        if(level_objects_strs.Count == 1) return ret;
+
+
+        foreach(string level_object_str in level_objects_strs)
+        {
+            ret.Add();
+            GJGameLevel! level = ret.Last();
+
+            
+            level.addFromObjectString(level_object_str);
+            if(level.LevelId <= 0)
+            {
+                ret.RemoveAt(ret.Count);
+            }
+        }
+        return ret;
+    }
+    string LevelName = "";
+    public string getLevelName() => LevelName;
+    public GJGameLevel! setLevelname!(string levelname) { LevelName = levelname; return this; }
+
+    string LevelString = "";
+    public string getLevelString() => LevelString;
+    public GJGameLevel! setLevelString!(string levelDesc) { LevelString = levelDesc; return this; }
+
+    string LevelDesc = "";
+    public string getDescription() => LevelDesc;
+    public GJGameLevel! setDescription!(string desc) { LevelDesc = desc; return this; }
+
+    string CreatorName = "";
+    public string getCreatorName() => CreatorName;
+    public GJGameLevel! setCreatorname!(string creatorname) { CreatorName = creatorname; return this; }
+
+    string UploadDate = "";
+    public string getUploadDate() => UploadDate;
+    public GJGameLevel! setUploadDate!(string uploadDate) { UploadDate = uploadDate; return this; }
+
+    string UpdateDate = "";
+    public string getUpdateDate() => UpdateDate;
+    public GJGameLevel! setUpdateDate!(string updateDate) { UpdateDate = updateDate; return this; }
+    
+    int PlayerId = 0;
+    public int getPlayerId() => PlayerId;
+    public GJGameLevel! setPlayerId!(int playerId) { PlayerId = playerId; return this; }
+
+    int AccountId = 0;
+    public int getAccountId() => AccountId;
+    public GJGameLevel! setAccountId!(int accountId) { AccountId = accountId; return this; }
+
+    int LevelId = 0;
+    public int getLevelId() => LevelId;
+    public GJGameLevel! setLevelId!(int levelId) { LevelId = levelId; return this; }
+
+    int SongId = 0;
+    public int getSongId() => SongId;
+    public GJGameLevel! setSongId!(int songId) { SongId = songId; return this; }
+
+    int LevelRev = 0;
+    public int getLevelRev() => LevelRev;
+    public GJGameLevel! setLevelRev!(int levelRev) { LevelRev = levelRev; return this; }
+
+    int ObjectCount = 0;
+    public int getObjectCount() => ObjectCount;
+    public GJGameLevel! setObjectCount!(int objectCount) { ObjectCount = objectCount; return this; }
+
+    int Downloads = 0;
+    public int getDownloads() => Downloads;
+    public GJGameLevel! setDownloads!(int downloads) { Downloads = downloads; return this; }
+
+    int OfficialSongId = 0;
+    public int getOfficialSong() => OfficialSongId;
+    public GJGameLevel! setOfficialSong!(int officialSong) { OfficialSongId = officialSong; return this; }
+
+    int Likes = 0;
+    public int getLikes() => Likes;
+    public GJGameLevel! setLikes!(int likes) { Likes = likes; return this; }
+
+    int Dislikes = 0;
+    public int getDislikes() => Dislikes;
+    public GJGameLevel! setDislikes!(int dislikes) { Dislikes = dislikes; return this; }
+
+    int WorkingTime = 0;
+    public int getWorkingTime() => WorkingTime;
+    public GJGameLevel! setWorkingTime!(int workingTime) { WorkingTime = workingTime; return this; }
+
+    int LevelVersion = 0;
+    public int getLevelVersion() => LevelVersion;
+    public GJGameLevel! setLevelVersion!(int levelVersion) { LevelVersion = levelVersion; return this; }
+
+    int GameVersion = 0;
+    public int getGameVersion() => GameVersion;
+    public GJGameLevel! setGameVersion!(int gameVersion) { GameVersion = gameVersion; return this; }
+
+    int Coins = 0;
+    public int getCoins() => Coins;
+    public GJGameLevel! setCoins!(int coins) { Coins = coins; return this; }
+
+    int Stars = 0;
+    public int getStars() => Stars;
+    public GJGameLevel! setStars!(int stars) { Stars = stars; return this; }
+
+    int FeatureScore = 0;
+    public int getFeatureScore() => FeatureScore;
+    public GJGameLevel! setFeatureScore!(int featureScore) { FeatureScore = featureScore; return this; }
+
+    int CopyPassword = 0;
+    public int getCopyPassword() => CopyPassword;
+    public GJGameLevel! setCopyPassword!(int copyPassword) { CopyPassword = copyPassword; return this; }
+
+    int OriginalLevelId = 0;
+    public int getOriginalLevelId() => OriginalLevelId;
+    public GJGameLevel! setOriginalLevelId!(int originalLevelId) { OriginalLevelId = originalLevelId; return this; }
+
+    int StarsRequested = 0;
+    public int getStarsRequested() => StarsRequested;
+    public GJGameLevel! setStarsRequested!(int starsRequested) { StarsRequested = starsRequested; return this; }
+
+    int CopiedId = 0;
+    public int getCopiedId() => CopiedId;
+    public GJGameLevel! setCopiedId!(int copiedId) { this.CopiedId = copiedId; return this; }
+
+    int DailyWeeklyNumber = 0;
+    public int getDailyWeeklyNumber() => DailyWeeklyNumber;
+    public GJGameLevel! setDailyWeeklyNumber!(int dailyWeeklyNumber) { DailyWeeklyNumber = dailyWeeklyNumber; return this; }
+
+    int Epic = 0;
+    public int getEpic() => Epic;
+    public GJGameLevel! setEpic!(int epic) { Epic = epic; return this; }
+
+    int EditorTime = 0;
+    public int getEditorTime() => EditorTime;
+    public GJGameLevel! setEditorTime!(int editorTime) { EditorTime = editorTime; return this; }
+
+    int EditorTimeCopies = 0;
+    public int getEditorTimeCopies() => EditorTimeCopies;
+    public GJGameLevel! setEditorTimeCopies!(int editorTimeCopies) { EditorTimeCopies = editorTimeCopies; return this; }
+
+    DifficultyFaces LevelDifficulty = DifficultyFaces.na;
+    public DifficultyFaces getLevelDifficulty() => LevelDifficulty;
+    public GJGameLevel! setLevelDifficulty!(DifficultyFaces levelDifficulty) { LevelDifficulty = levelDifficulty; return this; }
+
+    DemonFaces DemonDifficulty = DemonFaces.na;
+    public DemonFaces getDemonDifficulty() => DemonDifficulty;
+    public GJGameLevel! setDemonDifficulty!(DemonFaces demonDifficulty) { DemonDifficulty = demonDifficulty; return this; }
+
+    LevelLength LevelDuration = LevelLength.na;
+    public LevelLength getLevelLength() => LevelDuration;
+    public GJGameLevel! setLevelLength!(LevelLength levelLength) { LevelDuration = levelLength; return this; }
+
+    bool IsUnlisted = false;
+    public bool getIsUnlisted() => IsUnlisted;
+    public GJGameLevel! setIsUnlisted!(bool isUnlisted) { IsUnlisted = isUnlisted; return this; }
+
+    bool IsFriendsOnly = false;
+    public bool getIsFriendsOnly() => IsFriendsOnly;
+    public GJGameLevel! setIsFriendsOnly!(bool isFriendsOnly) { IsFriendsOnly = isFriendsOnly; return this; }
+
+    bool IsGauntletLevel = false;
+    public bool getIsGauntletLevel() => IsGauntletLevel;
+    public GJGameLevel! setIsGauntletLevel!(bool isGauntletLevel) { IsGauntletLevel = isGauntletLevel; return this; }
+
+    bool m_hasLowDetail = false;
+    public bool getHasLowDetail() => m_hasLowDetail;
+    public GJGameLevel! setHasLowDetail!(bool hasLowDetail) { m_hasLowDetail = hasLowDetail; return this; }
+
+    bool IsUnrated = false;
+    public bool getIsUnrated() => IsUnrated;
+    public GJGameLevel! setIsUnrated!(bool isUnrated) { IsUnrated = isUnrated; return this; }
+
+    bool IsFeatured = false;
+    public bool getIsFeatured() => IsFeatured;
+    public GJGameLevel! setIsFeatured!(bool isFeatured) { IsFeatured = isFeatured; return this; }
+
+    bool IsAuto = false;
+    public bool getIsAuto() => IsAuto;
+    public GJGameLevel! setIsAuto!(bool isAuto) { IsAuto = isAuto; return this; }
+
+    bool IsDemon = false;
+    public bool getIsDemon() => IsDemon;
+    public GJGameLevel! setIsDemon!(bool isDemon) { IsDemon = isDemon; return this; }
+
+    bool IsCoinsVerified = false;
+    public bool getIsCoinsVerified() => IsCoinsVerified;
+    public GJGameLevel! setIsCoinsVerified!(bool isCoinsVerified) { IsCoinsVerified = isCoinsVerified; return this; }
+
+    bool IsTwoPlayer = false;
+    public bool getIsTwoPlayer() => IsTwoPlayer;
+    public GJGameLevel! setIsTwoPlayer!(bool isTwoPlayer) { IsTwoPlayer = isTwoPlayer; return this; }
+
+    bool m_verifiedCoins = false;
+    public bool getVerifiedCoins() => m_verifiedCoins;
+    public GJGameLevel! setVerifiedCoins!(bool verifiedCoins) { m_verifiedCoins = verifiedCoins; return this; }
+}
+
+#if TEST
+class Tests
+{
+    int TestsCount = 0;
+    int TestsFailed = 0;
+    int TestsPassed = 0;
+
+    public void eq!(string name, bool passed)
+    {
+        TestsCount++;
+        string passedString = passed ? "OK" : "Failed";
+        if(passed)
+        {
+            TestsPassed++;
+        }
+        else
+        {
+            TestsFailed++;
+            Console.Write("Test ");
+            Console.WriteLine(name);
+            Console.WriteLine(" Failed");
+        }
+    }
+    public void end()
+    {
+        if(TestsFailed == 0)
+        {
+            Console.WriteLine("All tests passed");
+        }
+        else
+        {
+            Console.WriteLine("{TestsFailed} Tests failed");
+        }
+    }
+}
+class Main
+{
+    public static void Main()
+    {
+        Tests() test;
+
+        Console.WriteLine("Running bad input tets");
+
+        List<GJGameLevel()>() badinput = GJGameLevel.createFromGjlevels21Response("-1");
+        test.eq("GJGameLevel.-1", badinput.Count == 0);
+
+        badinput = GJGameLevel.createFromGjlevels21Response("aaaa#bbbb#ccc");
+        test.eq("GJGameLevel.aaaa#bbbb#ccc", badinput.Count == 0);
+
+        badinput = GJGameLevel.createFromGjlevels21Response("1:!#1:1:!#ccc");
+        test.eq("GJGameLevel.1:!.1#1:1:!#ccc", badinput.Count == 0);
+
+        Console.WriteLine("Running manual tryparse test");
+        test.eq("ManualTryParse", GJGameLevel.tryParse("12345") == 12345);
+        test.eq("ManualTryParse_ValidInput", GJGameLevel.tryParse("54321") == 54321);
+        test.eq("ManualTryParse_InvalidInput", GJGameLevel.tryParse("abcde") == 0);
+        test.eq("ManualTryParse_EmptyInput", GJGameLevel.tryParse("") == 0);
+        test.eq("ManualTryParse_DefaultVal", GJGameLevel.tryParse("a", 555) == 555);
+        test.eq("ManualTryParse_LeadingZeros", GJGameLevel.tryParse("000123") == 123);
+
+        test.eq("ManualTryParse_Negative", GJGameLevel.tryParse("-12345") == -12345);
+        test.eq("ManualTryParse_Negative_ValidInput", GJGameLevel.tryParse("-54321") == -54321);
+        test.eq("ManualTryParse_Negative_InvalidInput", GJGameLevel.tryParse("-abcde") == 0);
+        test.eq("ManualTryParse_Negative_EmptyInput", GJGameLevel.tryParse("-") == 0);
+
+        string response = "1:10565740:2:Bloodbath:5:3:6:503085:8:10:9:50:10:80971931:12:0:13:21:14:3920083:17:1:43:6:25::18:10:19:10330:42:0:45:24746:3:V2hvc2UgYmxvb2Qgd2lsbCBiZSBzcGlsdCBpbiB0aGUgQmxvb2RiYXRoPyBXaG8gd2lsbCB0aGUgdmljdG9ycyBiZT8gSG93IG1hbnkgd2lsbCBzdXJ2aXZlPyBHb29kIGx1Y2suLi4=:15:3:30:7679228:31:0:37:0:38:0:39:0:46:1:47:2:35:467339|1:10792915:2:Bloodbath Auto:5:6:6:7577674:8:10:9:30:10:6903615:12:0:13:21:14:324958:17::43:0:25::18:0:19:0:42:0:45:25102:3:T3JpZ2luYWwgYnkgUmlvdCBhbmQgbW9yZS4gVjE0IEZpbmFsIHVwZGF0ZS4=:15:3:30:10629260:31:0:37:0:38:0:39:1:46:1:47:2:35:467339|1:21761387:2:Bloodbath Z:5:1:6:3277407:8:10:9:20:10:8717509:12:0:13:20:14:305600:17:1:43:4:25::18:10:19:17840:42:0:45:0:3:UmVtYWtlIG9mIEJCLCBidXQgU2hvcnRlciBhbmQgbXVjaCBlYXNpZXIgWEQgTW9yZSBvZiBhIGdhbWVwbGF5IGxldmVsISAgSnVzdCBhIGZ1biBlYXN5IGRlbW9uLiBWZXJpZmllZCBCeSBYaW9kYXplciEgRW5qb3kgOkQ=:15:3:30:0:31:0:37:3:38:1:39:10:46:1:47:2:35:223469|1:38601659:2:Bloodbath noclip:5:1:6:49849584:8:10:9:40:10:5961569:12:0:13:21:14:217456:17::43:5:25::18:0:19:0:42:0:45:0:3:VGh4IGZvciAxNy4wMDAgZG93bmxvYWRzIEdHISA6KQ==:15:3:30:37014135:31:0:37:0:38:0:39:10:46:1:47:2:35:467339|1:10578973:2:Bloodbath easy:5:7:6:4957748:8:10:9:40:10:6993015:12:0:13:20:14:205450:17::43:5:25::18:0:19:0:42:0:45:0:3:TGV2ZWwgZWRpdCAtIEJsb29kYmF0aCBieSBsUmlvdCBhbmQgb3RoZXJzIC0gVXB0YWRlIdIuMCA6KQ==:15:3:30:9957293:31:0:37:0:38:0:39:6:46:1:47:2:35:467339|1:13615973:2:Bloodbath V2:5:1:6:7504011:8:10:9:30:10:3179886:12:0:13:20:14:145580:17::43:0:25::18:0:19:0:42:0:45:0:3:Qmxvb2RiYXRoIdIuMCBtb3JlIGVhc3kgOjMgLyBCbG9vZGJhdGggMi4wIG1hcyBmYWNpbCw6My4uLmxldmVsIG9yaWdpbmFsIEJ5IFJJT1Q=:15:3:30:10629260:31:0:37:3:38:0:39:10:46:1:47:2:35:467339|1:64968478:2:Bloodbath but no:5:1:6:19747356:8:10:9:50:10:2197470:12:0:13:21:14:141835:17::43:6:25::18:8:19:24992:42:0:45:23233:3:Qmxvb2RiYXRoLCBJdCdzIG5vdCBldmVuIHRoaXM=:15:3:30:0:31:0:37:0:38:1:39:8:46:1:47:2:35:706340|1:35717743:2:Bloodbath II:5:2:6:35167443:8:10:9:50:10:2253155:12:0:13:21:14:107679:17::43:6:25::18:0:19:0:42:0:45:65535:3::15:3:30:35717743:31:0:37:0:38:0:39:10:46:1:47:2:35:467339|1:11797073:2:bloodbath easy:5:4:6:5936733:8:10:9:40:10:3725212:12:0:13:20:14:103793:17::43:5:25::18:0:19:0:42:0:45:0:3:Y29taW5nIHNvb24uIE5pdmVsIHRvdGFsbWVudGUgb3JpZ2luYWwgcG9yIG1pIdopIG1lIGhhIGNvc3RhZG8gaGFjZXIgZXN0ZSBuaXZlbCA7KSA=:15:3:30:0:31:0:37:0:38:0:39:7:46:1:47:2:35:467339|1:19918362:2:bloodbath ez:5:1:6:16422219:8:10:9:40:10:1960249:12:0:13:20:14:95569:17::43:5:25::18:0:19:0:42:0:45:0:3::15:4:30:10629260:31:0:37:3:38:0:39:5:46:1:47:2:35:467339#503085:Riot:37415|3277407:Zyzyx:88354|4957748:jukaras:215350|5936733:Luis8380:871302|7504011:1XxDrawinGxX1:990791|7577674:dAlt9:1012149|19747356:Texic:6152129|35167443:edictz:6643477|49849584:Thanasis2007:7979488#1~|~223469~|~2~|~ParagonX9 - HyperioxX~|~3~|~31~|~4~|~ParagonX9~|~5~|~3.77~|~6~|~~|~10~|~http%3A%2F%2Faudio.ngfiles.com%2F223000%2F223469_ParagonX9___HyperioxX.mp3~|~7~|~~|~8~|~1~:~1~|~467339~|~2~|~At the Speed of Light~|~3~|~52~|~4~|~Dimrain47~|~5~|~9.56~|~6~|~~|~10~|~https%3A%2F%2Fgeometrydashcontent.b-cdn.net%2Fsongs%2F467339.mp3~|~7~|~~|~8~|~1~:~1~|~706340~|~2~|~-At the Speed of Light- (8 bit Remix)~|~3~|~46724~|~4~|~ThaPredator~|~5~|~4.78~|~6~|~~|~10~|~http%3A%2F%2Faudio.ngfiles.com%2F706000%2F706340_-At-the-Speed-of-Light--8-.mp3~|~7~|~~|~8~|~1#9999:0:10#56cae3778e30fad1718f165af0c1dfe620322a53";
+        List<GJGameLevel()>() levels = GJGameLevel.createFromGjlevels21Response(response);
+        test.eq("GJGameLevel.createFromGjlevels21Response", levels.Count == 10);
+
+        GJGameLevel l = levels[0];
+        Console.WriteLine("Running tests on Bloodbath by Riot, 10565740");
+        test.eq("GJGameLevel.levelId", l.getLevelId() == 10565740);
+        test.eq("GJGameLevel.levelname", l.getLevelName() == "Bloodbath");
+        test.eq("GJGameLevel.playerId", l.getPlayerId() == 503085);
+        test.eq("GJGameLevel.isDemon", l.getIsDemon());
+        test.eq("GJGameLevel.stars", l.getStars() == 10);
+
+        test.eq("GJGameLevel.featured", l.getFeatureScore() != 0);
+        test.eq("GJGameLevel.epic", l.getEpic() == 0);
+        test.eq("GJGameLevel.songId", l.getSongId() == 467339);
+        test.eq("GJGameLevel.isGauntletLevel", !l.getIsGauntletLevel());
+        test.eq("GJGameLevel.getDemonDifficulty", l.getDemonDifficulty() == DemonFaces.extreme);
+
+
+        l = levels[1];
+        Console.WriteLine("Running tests on Bloodbath Auto by dAlt9, 10792915");
+        test.eq("GJGameLevel.levelId", l.getLevelId() == 10792915);
+        test.eq("GJGameLevel.levelname", l.getLevelName() == "Bloodbath Auto");
+        test.eq("GJGameLevel.playerId", l.getPlayerId() == 7577674);
+        test.eq("GJGameLevel.isDemon", !l.getIsDemon());
+        test.eq("GJGameLevel.stars", l.getStars() == 0);
+        test.eq("GJGameLevel.featured", l.getFeatureScore() == 0);
+        test.eq("GJGameLevel.epic", l.getEpic() == 0);
+        test.eq("GJGameLevel.songId", l.getSongId() == 467339);
+        test.eq("GJGameLevel.getDemonDifficulty", l.getDemonDifficulty() == DemonFaces.na);
+        test.eq("GJGameLevel.getLevelDifficulty", l.getLevelDifficulty() == DifficultyFaces.hard);
+
+        test.end();
+    }
+}
+
+#endif
