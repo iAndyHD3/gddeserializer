@@ -55,3 +55,6 @@ Output
 ```
 
 In C++ **do NOT use** `using namespace gdd;` as that will likely conflict with the gd's `GJGameLevel`
+
+
+More languages in the [transpiled](transpiled) dir. Tested languages: C++, Python, Javascript
